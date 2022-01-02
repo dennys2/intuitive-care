@@ -1,5 +1,4 @@
 import requests
-import os
 from bs4 import BeautifulSoup
 
 #Recebe um url e retorna um objeto BeautifulSoup
@@ -11,8 +10,8 @@ def requestUrl(url):
 #Entra no link da ultima versao 
 def searchNewestVersion():
     soup = requestUrl('https://www.gov.br/ans/pt-br/assuntos/prestadores/padrao-para-troca-de-informacao-de-saude-suplementar-2013-tiss')
-    link = soup.find('a', class_='alert-link', href = True)
-    url = link['href']
+    link = soup.find('a', class_='alert-link', href = True) #Procura um elemento html alert-link
+    url = link['href'] #Encontra o link que aponta para a próxima página
     return url
 
 
@@ -20,27 +19,24 @@ def searchNewestVersion():
 def downloadComponente():
     url = searchNewestVersion()
     soup = requestUrl(url)
-    rows = soup.tbody.contents
-    componenteOrganizacionalRow = rows[1].find('a')
-    urlToDownload = componenteOrganizacionalRow['href']
-    fileName = urlToDownload.split('/')[-1]
-    file = downloadFile(urlToDownload, fileName)
-    print('File downloaded:', file)
+    rows = soup.tbody.contents #Retorna a tabela HTML
+    componenteOrganizacionalRow = rows[1].find('a') #Retorna o elemento abaixo do cabeçalho, que é o que buscamos
+    urlToDownload = componenteOrganizacionalRow['href'] #Encontra o link do pdf
+    fileName = urlToDownload.split('/')[-1] #Pega o nome do pdf
+    downloadFile(urlToDownload, fileName)
+    print('File downloaded:', fileName)
 
 
 #Salva o arquivo na pasta do projeto, dividindo em chunks (pedaços)
 def downloadFile(url, filename):
     try:
-        with requests.get(url) as req:
-            with open(filename, 'wb') as f:
-                for chunk in req.iter_content(chunk_size=8192):
+        with requests.get(url) as req: 
+            with open('teste 1/' + filename, 'wb') as f: #Escreve um arquivo dentro da pasta teste 1 com o nome do pdf baixado
+                for chunk in req.iter_content(chunk_size=8192): #Itera o conteúdo em pedaços
                     if chunk:
-                        f.write(chunk)
-            return filename
+                        f.write(chunk) #Escreve o pedaço
     except Exception as e:
         print(e)
-        return None
-
 
 downloadComponente()
 
