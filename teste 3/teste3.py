@@ -14,10 +14,13 @@ def copiarTabelasTrimestrais(trimestres):
                 VL_SALDO_FINAL text
             )
             """)
-
             with open(f'teste 3/{trimestre}.csv', 'r') as f:
                 next(f)
                 cur.copy_from(f, f'trimestre{trimestre}', sep=';')
+            cur.execute(f"""
+                UPDATE trimestre{trimestre} SET reg_ans = REPLACE(reg_ans,'"',''
+            )
+            """)
         copiarTabelaRegistro()
     except Exception as e:
         print(e)
@@ -54,7 +57,34 @@ def copiarTabelaRegistro():
     except Exception as e:
         print(e)
 
+def empresasComMaisDespesasUltimoSemestre():
+    cur.execute(f"""
+        SELECT razão_social FROM registro, trimestre3t2021
+        WHERE reg_ans = registro_ans AND descricao like '"EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR "'
+        ORDER BY vl_saldo_final DESC
+        LIMIT 10
+    """)
 
+    row = cur.fetchone()
+    while row is not None:
+        print(row)
+        row = cur.fetchone()
+
+
+def empresasComMaisDespesasUltimoAno():
+    cur.execute(f"""
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre1t2021 UNION ALL
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre2t2021 UNION ALL
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre3t2021
+        WHERE reg_ans = registro_ans AND descricao like '"EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR "'
+        ORDER BY vl_saldo_final DESC
+        LIMIT 10
+    """)
+
+    row = cur.fetchone()
+    while row is not None:
+        print(row)
+        row = cur.fetchone()
 
 try:
     conn = psycopg2.connect("dbname=teste3 user=postgres password=admin123")
@@ -62,6 +92,7 @@ try:
 except Exception as e:
     print(e)
 
-copiarTabelaRegistro()
-
+copiarTabelasTrimestrais(trimestres)
 conn.commit()
+empresasComMaisDespesasUltimoSemestre()
+conn.close()
