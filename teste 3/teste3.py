@@ -94,8 +94,8 @@ except Exception as e:
 
 trimestres = ['1t2020', '1t2021', '2t2020', '2t2021', '3t2020', '3t2021', '4t2020'] #Vetor que possui os nomes dos arquivos trimestrais
 
-#copiarTabelasTrimestrais(trimestres)
-#conn.commit()
+copiarTabelasTrimestrais(trimestres)
+conn.commit()
 empresasComMaisDespesasUltimoSemestre()
 #empresasComMaisDespesasUltimoAno()
 conn.close()
