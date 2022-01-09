@@ -1,10 +1,8 @@
 import psycopg2
 
-trimestres = ['1t2020', '1t2021', '2t2020', '2t2021', '3t2020', '3t2021', '4t2020']
-
 def copiarTabelasTrimestrais(trimestres):
     try:
-        for trimestre in trimestres:
+        for trimestre in trimestres: #Cria tabelas trimestrais e copia o conteúdo dos csvs
             cur.execute(f"""
                 CREATE TABLE trimestre{trimestre}(
                 DATA DATE,
@@ -18,16 +16,16 @@ def copiarTabelasTrimestrais(trimestres):
                 next(f)
                 cur.copy_from(f, f'trimestre{trimestre}', sep=';')
             cur.execute(f"""
-                UPDATE trimestre{trimestre} SET reg_ans = REPLACE(reg_ans,'"',''
+                UPDATE trimestre{trimestre} SET reg_ans = REPLACE(reg_ans,'"','' 
             )
-            """)
-        copiarTabelaRegistro()
+            """) #Conserta os dados do banco para comparação
+        copiarTabelaRegistro() 
     except Exception as e:
         print(e)
 
 
 def copiarTabelaRegistro():
-    try:
+    try: #Cria a tabela registro e copia o conteúdo do csv
         cur.execute("""
             CREATE TABLE registro(
             Registro_ANS text,
@@ -58,8 +56,9 @@ def copiarTabelaRegistro():
         print(e)
 
 def empresasComMaisDespesasUltimoSemestre():
+    print('As 10 operadoras que mais tiveram despesas com "EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR" no último trimestre?')
     cur.execute(f"""
-        SELECT razão_social FROM registro, trimestre3t2021
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre3t2021
         WHERE reg_ans = registro_ans AND descricao like '"EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR "'
         ORDER BY vl_saldo_final DESC
         LIMIT 10
@@ -72,9 +71,10 @@ def empresasComMaisDespesasUltimoSemestre():
 
 
 def empresasComMaisDespesasUltimoAno():
+    print('As 10 operadoras que mais tiveram despesas com "EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR" no último ano?')
     cur.execute(f"""
-        SELECT razão_social, vl_saldo_final FROM registro, trimestre1t2021 UNION ALL
-        SELECT razão_social, vl_saldo_final FROM registro, trimestre2t2021 UNION ALL
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre1t2021 UNION 
+        SELECT razão_social, vl_saldo_final FROM registro, trimestre2t2021 UNION 
         SELECT razão_social, vl_saldo_final FROM registro, trimestre3t2021
         WHERE reg_ans = registro_ans AND descricao like '"EVENTOS/ SINISTROS CONHECIDOS OU AVISADOS  DE ASSISTÊNCIA A SAÚDE MEDICO HOSPITALAR "'
         ORDER BY vl_saldo_final DESC
@@ -92,7 +92,10 @@ try:
 except Exception as e:
     print(e)
 
-copiarTabelasTrimestrais(trimestres)
-conn.commit()
+trimestres = ['1t2020', '1t2021', '2t2020', '2t2021', '3t2020', '3t2021', '4t2020'] #Vetor que possui os nomes dos arquivos trimestrais
+
+#copiarTabelasTrimestrais(trimestres)
+#conn.commit()
 empresasComMaisDespesasUltimoSemestre()
+#empresasComMaisDespesasUltimoAno()
 conn.close()
